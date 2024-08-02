@@ -1,5 +1,8 @@
 server:
-  publish_on: 0.0.0.0:8000
+  publish_on:
+    ip: 0.0.0.0
+    # Can be number or "env"
+    port: env
   # Database url. Change it on production! (for example, to `sqlite:///storage/archk.db`)
   database: sqlite://archk.db
   roles:

@@ -1,6 +1,6 @@
-use std::fs;
+use std::{fs, net::SocketAddrV4};
 
-use app::{AppConfig, AppState};
+use app::{AppConfig, AppConfigServerPublishOnPort, AppState};
 use axum::{routing::get, Router};
 use sqlx::SqlitePool;
 
@@ -63,15 +63,36 @@ async fn main() {
         .route("/", get(|| async { String::from("hi") }))
         .with_state(state);
 
-    let listener = tokio::net::TcpListener::bind(&config.publish_on).await;
+    let port = match config.publish_on.port {
+        AppConfigServerPublishOnPort::Port(v) => v,
+        AppConfigServerPublishOnPort::ObtainFromEnv => {
+            match std::env::var("PORT").map(|v| v.parse()) {
+                Ok(Ok(v)) => v,
+                _ => {
+                    eprintln!("You should pass valid port in `$PORT` envinroment variable or change `server.publish_on` option in config");
+                    panic!("failed to obtain port from env ($PORT)");
+                }
+            }
+        }
+    };
+
+    let listener =
+        tokio::net::TcpListener::bind(SocketAddrV4::new(config.publish_on.ip, port)).await;
     let listener = match listener {
         Ok(v) => v,
         Err(err) => {
-            eprintln!("Failed to bind to address `{}`: {err}", config.publish_on);
+            eprintln!(
+                "Failed to bind to address `{}:{}`: {err}",
+                config.publish_on.ip, port
+            );
             panic!("failed to bind: {err}");
         }
     };
 
-    tracing::info!(publish_on = config.publish_on, "Server staring");
+    tracing::info!(
+        ip = config.publish_on.ip.to_string(),
+        port = port,
+        "Starting server"
+    );
     axum::serve(listener, app).await.unwrap();
 }
