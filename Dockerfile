@@ -9,8 +9,8 @@ RUN DATABASE_URL=sqlite://archk.db cargo build --release --verbose
 
 FROM alpine:latest
 
-COPY --from=builder /app/target/release/archk-api /usr/local/bin/archk-api
+COPY --from=builder /app/target/release/archk-api-server /usr/local/bin/archk-api-server
 
 EXPOSE 8000
 ENV RUST_LOG=archk_api=info,tower_http=info
-CMD ["archk-api"]
+CMD ["archk-api-server"]
