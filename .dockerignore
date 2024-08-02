@@ -1,0 +1,7 @@
+config.yml
+env.sh
+*.db
+.git/
+target/
+.vscode/
+.sqlx/

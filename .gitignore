@@ -1,0 +1,5 @@
+target/
+archk.db
+config.yml
+.vscode/
+.sqlx/

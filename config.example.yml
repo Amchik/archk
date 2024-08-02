@@ -1,0 +1,30 @@
+server:
+  publish_on: 0.0.0.0:8000
+  # Database url. Change it on production! (for example, to `sqlite:///storage/archk.db`)
+  database: sqlite://archk.db
+  roles:
+    - name: Admin
+      level: 100
+      permissions:
+        # Can role promote others?
+        promote: true
+        # Can role make invite waves?
+        wave: true
+        # Can role manage users? (passwords, etc...)
+        manage: true
+        # Can create spaces?
+        spaces: true
+        # Can manage spaces of others?
+        spaces_manage: true
+    - name: Moderator
+      level: 90
+      permissions:
+        wave: true
+        spaces: true
+        spaces_manage: true
+    - name: Spaces
+      level: 10
+      permissions:
+        spaces: true
+    - name: Default
+      level: 0
