@@ -1,21 +1,27 @@
-use archk::v1::{
-    api::{self, Response},
-    auth::{Token, TokenTy},
-    user::is_valid_username,
+use archk::{
+    v1::{
+        api::{self, Response},
+        auth::{Token, TokenTy},
+        user::is_valid_username,
+    },
+    Documentation,
 };
 use axum::{extract::State, Json};
 use serde::{Deserialize, Serialize};
 
 use crate::app::AppState;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Documentation)]
 pub struct AuthorizationRequestData {
+    /// User name
     pub username: String,
+    /// User password
     pub password: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Documentation)]
 pub struct AuthorizationResponse {
+    /// Bearer token
     pub token: String,
 }
 

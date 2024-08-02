@@ -1,5 +1,5 @@
 [package]
-name = "archk-api"
+name = "archk-api-server"
 version = "0.1.0"
 edition = "2021"
 
@@ -27,8 +27,5 @@ sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio"] }
 tracing = "0.1"
 tracing-subscriber = "0.3"
 
-archk = { path = "../archk", features = ["axum", "derive"] }
-
-[build-dependencies]
-tokio = { version = "1", features = ["full"] }
-sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio"] }
+archk = { path = "../archk", features = ["axum"] }
+archk-api = { path = "../archk-api" }

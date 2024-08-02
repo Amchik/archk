@@ -10,6 +10,7 @@ pub mod models;
 
 /// Declaration of API response structure
 pub mod api;
+pub mod docs;
 
 /// Errors used in some models
 pub mod errors {

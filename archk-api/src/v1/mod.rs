@@ -18,27 +18,28 @@ use crate::app::AppState;
 
 mod auth;
 mod extra;
+pub mod routes;
 mod space;
 mod user;
 
 pub fn get_routes() -> Router<AppState> {
-    Router::new()
-        .route("/auth", post(auth::authorize))
-        .route("/users", get(user::get_users))
-        .route("/users/roles", get(user::get_all_roles))
-        .route("/user", get(user::get_self))
-        .route("/user", put(user::register))
-        .route("/user", patch(user::patch_user))
-        .route("/user/spaces", get(user::get_spaces))
-        .route("/user/@:user_id", get(user::get_user))
-        .route("/user/@:user_id", patch(user::reset_user_password))
-        .route("/user/@:user_id/role", get(user::get_user_role))
-        .route("/user/@:user_id/role", patch(user::promote_user))
-        .route("/user/@:user_id/spaces", get(user::get_user_spaces))
-        .route("/user/invites", get(user::get_invites))
-        .route("/user/invites", put(user::create_invite))
-        .route("/user/invites/wave", post(user::invite_wave))
-        .route("/space", put(space::create_space))
+    routes::get_routes()
+        // .route("/auth", post(auth::authorize))
+        // .route("/users", get(user::get_users))
+        // .route("/users/roles", get(user::get_all_roles))
+        // .route("/user", get(user::get_self))
+        // .route("/user", put(user::register))
+        // .route("/user", patch(user::patch_user))
+        // .route("/user/spaces", get(user::get_spaces))
+        // .route("/user/@:user_id", get(user::get_user))
+        // .route("/user/@:user_id", patch(user::reset_user_password))
+        // .route("/user/@:user_id/role", get(user::get_user_role))
+        // .route("/user/@:user_id/role", patch(user::promote_user))
+        // .route("/user/@:user_id/spaces", get(user::get_user_spaces))
+        // .route("/user/invites", get(user::get_invites))
+        // .route("/user/invites", put(user::create_invite))
+        // .route("/user/invites/wave", post(user::invite_wave))
+        // .route("/space", put(space::create_space))
         .route(
             "/space/:space_id",
             get(space::get_space)

@@ -1,12 +1,8 @@
 use std::{fs, net::SocketAddrV4};
 
-use app::{AppConfig, AppConfigServerPublishOnPort, AppState};
+use archk_api::app::{AppConfig, AppConfigServerPublishOnPort, AppState};
 use axum::{routing::get, Router};
 use sqlx::SqlitePool;
-
-mod app;
-mod roles;
-mod v1;
 
 #[tokio::main]
 async fn main() {
@@ -48,7 +44,7 @@ async fn main() {
         .await
         .expect("db connection");
 
-    if let Err(err) = sqlx::migrate!().run(&db).await {
+    if let Err(err) = archk_api::apply_migrations(&db).await {
         eprintln!("Failed to migrate on `{}`: {err}", config.database);
         panic!("failed to migrate: {err}");
     }
@@ -59,7 +55,7 @@ async fn main() {
     };
 
     let app = Router::new()
-        .nest("/api/v1", v1::get_routes())
+        .nest("/api/v1", archk_api::v1::get_routes())
         .route("/", get(|| async { String::from("hi") }))
         .with_state(state);
 

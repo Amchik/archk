@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["archk", "archk-api"]
+members = ["archk", "archk-api", "archk-api-server", "documentation-macro"]
 
 [profile.release]
 lto = true
