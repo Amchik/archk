@@ -11,6 +11,7 @@ pub fn documentation_derive(input: TokenStream) -> TokenStream {
 
 fn impl_documentation(ast: &DeriveInput) -> TokenStream {
     let name = &ast.ident;
+    // TODO: description
 
     let fields = if let syn::Data::Struct(data) = &ast.data {
         data.fields
@@ -37,10 +38,16 @@ fn impl_documentation(ast: &DeriveInput) -> TokenStream {
                         }
                     })
                     .collect();
-                let ty = field.ty.to_token_stream().to_string();
+                let ty = field.ty.to_token_stream();
                 let name = field.ident.as_ref().map(|v| v.to_string()).unwrap_or_else(|| "0".into());
 
-                quote! { ::archk::v1::docs::DocumentationField { name: #name, ty: #ty, description: #doc, } }
+                quote! { 
+                    ::archk::v1::docs::DocumentationField {
+                        name: #name,
+                        documentation:
+                            <#ty as ::archk::v1::docs::Documentation>::DOCUMENTATION_OBJECT.set_description(#doc)
+                    }
+                }
             })
             .collect::<Vec<_>>()
     } else {
@@ -51,10 +58,13 @@ fn impl_documentation(ast: &DeriveInput) -> TokenStream {
 
     let gen = quote! {
         impl ::archk::v1::docs::Documentation for #name {
-            const NAME: &'static str = #name_str;
-            const FIELDS: &'static [::archk::v1::docs::DocumentationField] = &[
-                #(#fields),*
-            ];
+            const DOCUMENTATION_OBJECT: ::archk::v1::docs::DocumentationObject = ::archk::v1::docs::DocumentationObject::new(
+                #name_str,
+                "", // description
+                &[
+                    #(#fields),*
+                ]
+            );
         }
     };
     gen.into()

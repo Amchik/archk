@@ -27,8 +27,8 @@ macro_rules! routes {
                 path: $path,
                 description: concat!( $($d, "\n",)* ),
                 $(
-                    $( body: Some( docs::documentation_object::<$body>() ), )?
-                    $( response: Some( docs::documentation_object::<$res>() ), )?
+                    $( body: Some( <$body as docs::Documentation>::DOCUMENTATION_OBJECT ), )?
+                    $( response: Some( <$res as docs::Documentation>::DOCUMENTATION_OBJECT ), )?
                 )?
                 ..docs::_EMPTY_ENDPOINT // fills `body` and `response` with `None`
             }

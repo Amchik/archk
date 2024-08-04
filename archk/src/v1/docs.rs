@@ -5,17 +5,17 @@ use super::models::MayIgnored;
 pub struct DocumentationField {
     /// Field name
     pub name: &'static str,
-    /// Field rust type
-    pub ty: &'static str,
-    /// Field description
-    pub description: &'static str,
+    /// Field documentation
+    pub documentation: DocumentationObject,
 }
 
-/// Represents [`Documentation`] but in struct. Can be obtained from [`DocumentationExt::documentation_object`].
+/// Represents [`Documentation`] object.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DocumentationObject {
     /// Type name
     pub name: &'static str,
+    /// Type (field) description
+    pub description: &'static str,
     /// Struct fields
     pub fields: &'static [DocumentationField],
 
@@ -27,27 +27,51 @@ pub struct DocumentationObject {
     pub is_may_ignored: bool,
 }
 
+impl DocumentationObject {
+    pub const fn new(
+        name: &'static str,
+        description: &'static str,
+        fields: &'static [DocumentationField],
+    ) -> Self {
+        Self {
+            name,
+            description,
+            fields,
+            is_array: false,
+            is_option: false,
+            is_may_ignored: false,
+        }
+    }
+
+    pub const fn set_array(mut self, is_array: bool) -> Self {
+        self.is_array = is_array;
+        self
+    }
+    pub const fn set_option(mut self, is_option: bool) -> Self {
+        self.is_option = is_option;
+        self
+    }
+    pub const fn set_may_ignored(mut self, is_may_ignored: bool) -> Self {
+        self.is_may_ignored = is_may_ignored;
+        self
+    }
+    pub const fn set_description(mut self, description: &'static str) -> Self {
+        self.description = description;
+        self
+    }
+}
+
 /// Described type or struct
 pub trait Documentation {
-    /// Type name
-    const NAME: &'static str;
-    /// Struct fields
-    const FIELDS: &'static [DocumentationField];
-
-    /// Is this type array?
-    const IS_ARRAY: bool = false;
-    /// Is this type nullable?
-    const IS_OPTION: bool = false;
-    /// Is this type may not exists in object?
-    const IS_MAY_IGNORED: bool = false;
+    /// Documentation object
+    const DOCUMENTATION_OBJECT: DocumentationObject;
 }
 
 macro_rules! impl_elementary {
     ($($v:ident)*) => {
         $(
             impl Documentation for $v {
-                const NAME: &'static str = stringify!($v);
-                const FIELDS: &'static [DocumentationField] = &[];
+                const DOCUMENTATION_OBJECT: DocumentationObject = DocumentationObject::new(stringify!($v), "", &[]);
             }
     )   *
     };
@@ -55,41 +79,15 @@ macro_rules! impl_elementary {
 impl_elementary!(String i8 i16 i32 i64 i128 u8 u16 u32 u64 u128);
 
 impl<T: Documentation> Documentation for Vec<T> {
-    const NAME: &'static str = T::NAME;
-    const FIELDS: &'static [DocumentationField] = T::FIELDS;
-
-    const IS_ARRAY: bool = true;
-    const IS_MAY_IGNORED: bool = T::IS_MAY_IGNORED;
-    const IS_OPTION: bool = T::IS_OPTION;
+    const DOCUMENTATION_OBJECT: DocumentationObject = T::DOCUMENTATION_OBJECT.set_array(true);
 }
 
 impl<T: Documentation> Documentation for Option<T> {
-    const NAME: &'static str = T::NAME;
-    const FIELDS: &'static [DocumentationField] = T::FIELDS;
-
-    const IS_ARRAY: bool = T::IS_ARRAY;
-    const IS_OPTION: bool = true;
-    const IS_MAY_IGNORED: bool = T::IS_MAY_IGNORED;
+    const DOCUMENTATION_OBJECT: DocumentationObject = T::DOCUMENTATION_OBJECT.set_option(true);
 }
 
 impl<T: Documentation> Documentation for MayIgnored<T> {
-    const NAME: &'static str = T::NAME;
-    const FIELDS: &'static [DocumentationField] = T::FIELDS;
-
-    const IS_ARRAY: bool = T::IS_ARRAY;
-    const IS_OPTION: bool = T::IS_OPTION;
-    const IS_MAY_IGNORED: bool = true;
-}
-
-/// Obtain [`DocumentationObject`] (for example, to store in vector)
-pub const fn documentation_object<T: Documentation>() -> DocumentationObject {
-    DocumentationObject {
-        name: T::NAME,
-        fields: T::FIELDS,
-        is_array: T::IS_ARRAY,
-        is_option: T::IS_OPTION,
-        is_may_ignored: T::IS_MAY_IGNORED,
-    }
+    const DOCUMENTATION_OBJECT: DocumentationObject = T::DOCUMENTATION_OBJECT.set_may_ignored(true);
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
