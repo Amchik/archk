@@ -73,11 +73,11 @@ fn main() {
             let mut later_types = Vec::new();
             for endpoint in endpoints {
                 later_types.clear();
-                println!("# {} `/api/v1{}`", endpoint.method, endpoint.path);
+                println!("## {} `/api/v1{}`", endpoint.method, endpoint.path);
                 println!("{}", endpoint.description);
 
                 if let Some(body) = &endpoint.body {
-                    println!("## Body");
+                    println!("### Body");
                     if body.fields.is_empty() {
                         println!("Body type is `{}`.", display_ty(body));
                     } else {
@@ -85,7 +85,7 @@ fn main() {
                         println!("|------|------|-------------|");
                         for field in body.fields {
                             println!(
-                                "| `{}` | {} | {} |",
+                                "| `{}` | `{}` | {} |",
                                 field.name,
                                 display_ty(&field.documentation),
                                 field.documentation.description
@@ -98,7 +98,7 @@ fn main() {
                 }
 
                 if let Some(response) = &endpoint.response {
-                    println!("## Response");
+                    println!("### Response");
                     if response.fields.is_empty() {
                         println!("Response type is `{}`.", display_ty(response));
                     } else {
@@ -106,7 +106,7 @@ fn main() {
                         println!("|------|------|-------------|");
                         for field in response.fields {
                             println!(
-                                "| `{}` | {} | {} |",
+                                "| `{}` | `{}` | {} |",
                                 field.name,
                                 display_ty(&field.documentation),
                                 field.documentation.description
@@ -128,12 +128,12 @@ fn main() {
 
                 for ty in later_types.iter() {
                     let ty = &ty.documentation;
-                    println!("## Type: {}", ty.name);
+                    println!("### Type: `{}`", ty.name);
                     println!("| Name | Type | Description |");
                     println!("|------|------|-------------|");
                     for field in ty.fields {
                         println!(
-                            "| `{}` | {} | {} |",
+                            "| `{}` | `{}` | {} |",
                             field.name,
                             display_ty(&field.documentation),
                             field.documentation.description
