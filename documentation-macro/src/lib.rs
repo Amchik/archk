@@ -10,6 +10,11 @@ pub fn documentation_derive(input: TokenStream) -> TokenStream {
 }
 
 fn impl_documentation(ast: &DeriveInput) -> TokenStream {
+    let crate_ = match std::env::var("CARGO_PKG_NAME") {
+        Ok(v) if v == "archk" => quote! { crate },
+        _ => quote!( ::archk ),
+    };
+    
     let name = &ast.ident;
     // TODO: description
 
@@ -42,10 +47,10 @@ fn impl_documentation(ast: &DeriveInput) -> TokenStream {
                 let name = field.ident.as_ref().map(|v| v.to_string()).unwrap_or_else(|| "0".into());
 
                 quote! { 
-                    ::archk::v1::docs::DocumentationField {
+                    #crate_::v1::docs::DocumentationField {
                         name: #name,
                         documentation:
-                            <#ty as ::archk::v1::docs::Documentation>::DOCUMENTATION_OBJECT.set_description(#doc)
+                            <#ty as #crate_::v1::docs::Documentation>::DOCUMENTATION_OBJECT.set_description(#doc)
                     }
                 }
             })
@@ -57,8 +62,8 @@ fn impl_documentation(ast: &DeriveInput) -> TokenStream {
     let name_str = name.to_string();
 
     let gen = quote! {
-        impl ::archk::v1::docs::Documentation for #name {
-            const DOCUMENTATION_OBJECT: ::archk::v1::docs::DocumentationObject = ::archk::v1::docs::DocumentationObject::new(
+        impl #crate_::v1::docs::Documentation for #name {
+            const DOCUMENTATION_OBJECT: #crate_::v1::docs::DocumentationObject = #crate_::v1::docs::DocumentationObject::new(
                 #name_str,
                 "", // description
                 &[

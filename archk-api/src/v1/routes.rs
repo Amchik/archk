@@ -47,23 +47,54 @@ routes! {
 
     /// Get all users. Supports paging.
     /// Can be accessed by any user.
-    GET "/users" => user::get_users,
+    GET "/users" => user::get_users
+        :   res(Vec<archk::v1::user::User>),
     /// Get all possible roles on current instance.
     /// Can be accessed by any user.
-    GET "/users/roles" => user::get_all_roles,
+    GET "/users/roles" => user::get_all_roles
+        :   res(Vec<crate::roles::UserRole>),
 
-    GET   "/user" => user::get_self,
-    PUT   "/user" => user::register,
-    PATCH "/user" => user::patch_user,
-    GET   "/user/spaces" => user::get_spaces,
-    GET   "/user/@:user_id" => user::get_user,
-    PATCH "/user/@:user_id" => user::reset_user_password,
-    GET   "/user/@:user_id/role" => user::get_user_role,
-    PATCH "/user/@:user_id/role" => user::promote_user,
-    GET   "/user/@:user_id/spaces" => user::get_user_spaces,
-    GET   "/user/invites" => user::get_invites,
-    PUT   "/user/invites" => user::create_invite,
-    POST  "/user/invites/wave" => user::invite_wave,
+    /// Get current user
+    GET   "/user" => user::get_self
+        :   res(user::SelfResponse),
+    /// Register new user
+    PUT   "/user" => user::register
+        :   body(user::RegisterRequestData)
+            res(user::RegisterResponse),
+    /// Update user password
+    PATCH "/user" => user::patch_user
+        :   body(user::PatchUser)
+            res(u64),
+    /// Get own spaces. Supports paging
+    GET   "/user/spaces" => user::get_spaces
+        :   res(Vec<user::UserSpaceResponse>),
+    /// Get other user by their ID
+    GET   "/user/@:user_id" => user::get_user
+        :   res(archk::v1::user::User),
+    /// Reset other user password
+    PATCH "/user/@:user_id" => user::reset_user_password
+        :   res(user::ResetPasswordResponse),
+    /// Get user role (by level)
+    GET   "/user/@:user_id/role" => user::get_user_role
+        :   res(crate::roles::UserRole),
+    /// Promote user to role or level
+    PATCH "/user/@:user_id/role" => user::promote_user
+        :   body(user::PromoteUserBody)
+            res(u64),
+    /// Get user spaces
+    GET   "/user/@:user_id/spaces" => user::get_user_spaces
+        :   res(Vec<user::UserSpaceResponse>),
+    /// Get invites
+    GET   "/user/invites" => user::get_invites
+        :   res(Vec<String>),
+    /// Create invite
+    PUT   "/user/invites" => user::create_invite
+        :   res(String),
+    /// Give every user one invite. If query param `min_level` set, gives
+    /// only to users with level `min_level` or higher
+    POST  "/user/invites/wave" => user::invite_wave
+        :   res(u64),
 
+    /// Create space
     PUT   "/space" => space::create_space,
 }

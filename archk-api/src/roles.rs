@@ -1,3 +1,4 @@
+use archk::Documentation;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
@@ -27,7 +28,7 @@ impl UserRoles {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Documentation)]
 pub struct UserRole {
     pub name: String,
     pub level: i64,
@@ -35,7 +36,7 @@ pub struct UserRole {
     pub permissions: RolePermissions,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Documentation)]
 pub struct RolePermissions {
     /// Promote users to current role or demote if role less than current.
     #[serde(default)]

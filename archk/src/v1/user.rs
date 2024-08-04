@@ -1,5 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use documentation_macro::Documentation;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -12,7 +13,7 @@ use super::macros::impl_cuid;
 pub struct UserID(String);
 impl_cuid!(UserID);
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Documentation)]
 pub struct User {
     /// CUID of user
     pub id: UserID,

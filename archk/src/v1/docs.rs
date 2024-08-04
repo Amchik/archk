@@ -1,7 +1,9 @@
+use serde::Serialize;
+
 use super::models::MayIgnored;
 
 /// Field of struct
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct DocumentationField {
     /// Field name
     pub name: &'static str,
@@ -10,7 +12,7 @@ pub struct DocumentationField {
 }
 
 /// Represents [`Documentation`] object.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct DocumentationObject {
     /// Type name
     pub name: &'static str,
@@ -68,7 +70,7 @@ pub trait Documentation {
 }
 
 macro_rules! impl_elementary {
-    ($($v:ident)*) => {
+    ($($v:path)*) => {
         $(
             impl Documentation for $v {
                 const DOCUMENTATION_OBJECT: DocumentationObject = DocumentationObject::new(stringify!($v), "", &[]);
@@ -76,7 +78,7 @@ macro_rules! impl_elementary {
     )   *
     };
 }
-impl_elementary!(String i8 i16 i32 i64 i128 u8 u16 u32 u64 u128);
+impl_elementary!(String i8 i16 i32 i64 i128 u8 u16 u32 u64 u128 bool super::user::UserID);
 
 impl<T: Documentation> Documentation for Vec<T> {
     const DOCUMENTATION_OBJECT: DocumentationObject = T::DOCUMENTATION_OBJECT.set_array(true);
@@ -90,7 +92,7 @@ impl<T: Documentation> Documentation for MayIgnored<T> {
     const DOCUMENTATION_OBJECT: DocumentationObject = T::DOCUMENTATION_OBJECT.set_may_ignored(true);
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 pub enum EndpointMethod {
     GET,
     POST,
@@ -98,7 +100,19 @@ pub enum EndpointMethod {
     PATCH,
     DELETE,
 }
+impl std::fmt::Display for EndpointMethod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self {
+            Self::GET => write!(f, "GET"),
+            Self::POST => write!(f, "POST"),
+            Self::PATCH => write!(f, "PATCH"),
+            Self::PUT => write!(f, "PUT"),
+            Self::DELETE => write!(f, "DELETE"),
+        }
+    }
+}
 
+#[derive(Clone, Debug, Serialize)]
 pub struct Endpoint {
     pub method: EndpointMethod,
     pub path: &'static str,
