@@ -5,13 +5,14 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-use super::macros::impl_cuid;
+use super::{docs::impl_documentation, macros::impl_cuid};
 
 /// Represents ID of user (CUID)
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
 #[repr(transparent)]
 pub struct UserID(String);
 impl_cuid!(UserID);
+impl_documentation!(UserID);
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Documentation)]
 pub struct User {
