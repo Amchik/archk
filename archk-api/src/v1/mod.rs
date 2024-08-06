@@ -23,60 +23,12 @@ mod space;
 mod user;
 
 pub fn get_routes() -> Router<AppState> {
-    routes::get_routes()
-        // .route("/auth", post(auth::authorize))
-        // .route("/users", get(user::get_users))
-        // .route("/users/roles", get(user::get_all_roles))
-        // .route("/user", get(user::get_self))
-        // .route("/user", put(user::register))
-        // .route("/user", patch(user::patch_user))
-        // .route("/user/spaces", get(user::get_spaces))
-        // .route("/user/@:user_id", get(user::get_user))
-        // .route("/user/@:user_id", patch(user::reset_user_password))
-        // .route("/user/@:user_id/role", get(user::get_user_role))
-        // .route("/user/@:user_id/role", patch(user::promote_user))
-        // .route("/user/@:user_id/spaces", get(user::get_user_spaces))
-        // .route("/user/invites", get(user::get_invites))
-        // .route("/user/invites", put(user::create_invite))
-        // .route("/user/invites/wave", post(user::invite_wave))
-        // .route("/space", put(space::create_space))
-        // .route(
-        //     "/space/:space_id",
-        //     get(space::get_space)
-        //         .patch(space::patch_space)
-        //         .delete(space::delete_space),
-        // )
-        // .route(
-        //     "/space/:space_id/account",
-        //     get(space::get_accounts).put(space::create_account),
-        // )
-        // .route(
-        //     "/space/:space_id/account/:acc_id",
-        //     get(space::get_account_by_id)
-        //         .patch(space::patch_account_by_id)
-        //         .delete(space::delete_account_by_id),
-        // )
-        // .route(
-        //     "/space/:space_id/account/:acc_id/items",
-        //     get(space::get_items_of_account),
-        // )
-        // .route(
-        //     "/space/:space_id/item",
-        //     get(space::get_items).put(space::create_item),
-        // )
-        // .route(
-        //     "/space/:space_id/item/:item_id",
-        //     get(space::get_item_by_id)
-        //         .patch(space::patch_item)
-        //         .delete(space::delete_item),
-        // )
-        .fallback(fallback)
-        .layer(
-            ServiceBuilder::new()
-                .layer(TraceLayer::new_for_http())
-                .layer(CatchPanicLayer::custom(catch_panic))
-                .layer(middleware::from_fn(catch_error)),
-        )
+    routes::get_routes().fallback(fallback).layer(
+        ServiceBuilder::new()
+            .layer(TraceLayer::new_for_http())
+            .layer(CatchPanicLayer::custom(catch_panic))
+            .layer(middleware::from_fn(catch_error)),
+    )
 }
 
 async fn fallback() -> api::Response {
