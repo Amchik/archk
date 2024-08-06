@@ -1,4 +1,7 @@
-use axum::{routing::get, Router};
+use axum::{
+    routing::{delete, get},
+    Router,
+};
 
 use crate::app::AppState;
 use archk::v1::docs;
@@ -97,4 +100,24 @@ routes! {
 
     /// Create space
     PUT   "/space" => space::create_space,
+
+    GET    "/space/:space_id" => space::get_space,
+    PATCH  "/space/:space_id" => space::patch_space,
+    DELETE "/space/:space_id" => space::delete_space,
+
+    GET "/space/:space_id/account" => space::get_accounts,
+    PUT "/space/:space_id/account" => space::create_account,
+
+    GET    "/space/:space_id/account/:acc_id" => space::get_account_by_id,
+    PATCH  "/space/:space_id/account/:acc_id" => space::patch_account_by_id,
+    DELETE "/space/:space_id/account/:acc_id" => space::delete_account_by_id,
+
+    GET "/space/:space_id/account/:acc_id/items" => space::get_items_of_account,
+
+    GET "/space/:space_id/item" => space::get_items,
+    PUT "/space/:space_id/item" => space::create_item,
+
+    GET    "/space/:space_id/item/:item_id" => space::get_item_by_id,
+    PATCH  "/space/:space_id/item/:item_id" => space::patch_item,
+    DELETE "/space/:space_id/item/:item_id" => space::delete_item,
 }

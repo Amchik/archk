@@ -7,7 +7,7 @@ use axum::{
     http::header::CONTENT_TYPE,
     middleware::{self, Next},
     response::{IntoResponse, Response},
-    routing::{get, patch, post, put},
+    routing::{patch, post, put},
     Router,
 };
 use http_body_util::BodyExt;
@@ -40,36 +40,36 @@ pub fn get_routes() -> Router<AppState> {
         // .route("/user/invites", put(user::create_invite))
         // .route("/user/invites/wave", post(user::invite_wave))
         // .route("/space", put(space::create_space))
-        .route(
-            "/space/:space_id",
-            get(space::get_space)
-                .patch(space::patch_space)
-                .delete(space::delete_space),
-        )
-        .route(
-            "/space/:space_id/account",
-            get(space::get_accounts).put(space::create_account),
-        )
-        .route(
-            "/space/:space_id/account/:acc_id",
-            get(space::get_account_by_id)
-                .patch(space::patch_account_by_id)
-                .delete(space::delete_account_by_id),
-        )
-        .route(
-            "/space/:space_id/account/:acc_id/items",
-            get(space::get_items_of_account),
-        )
-        .route(
-            "/space/:space_id/item",
-            get(space::get_items).put(space::create_item),
-        )
-        .route(
-            "/space/:space_id/item/:item_id",
-            get(space::get_item_by_id)
-                .patch(space::patch_item)
-                .delete(space::delete_item),
-        )
+        // .route(
+        //     "/space/:space_id",
+        //     get(space::get_space)
+        //         .patch(space::patch_space)
+        //         .delete(space::delete_space),
+        // )
+        // .route(
+        //     "/space/:space_id/account",
+        //     get(space::get_accounts).put(space::create_account),
+        // )
+        // .route(
+        //     "/space/:space_id/account/:acc_id",
+        //     get(space::get_account_by_id)
+        //         .patch(space::patch_account_by_id)
+        //         .delete(space::delete_account_by_id),
+        // )
+        // .route(
+        //     "/space/:space_id/account/:acc_id/items",
+        //     get(space::get_items_of_account),
+        // )
+        // .route(
+        //     "/space/:space_id/item",
+        //     get(space::get_items).put(space::create_item),
+        // )
+        // .route(
+        //     "/space/:space_id/item/:item_id",
+        //     get(space::get_item_by_id)
+        //         .patch(space::patch_item)
+        //         .delete(space::delete_item),
+        // )
         .fallback(fallback)
         .layer(
             ServiceBuilder::new()
