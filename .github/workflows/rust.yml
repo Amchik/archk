@@ -1,6 +1,9 @@
 name: Rust
 
-on: [ push, pull_request ]
+on:
+  push:
+    branches: master
+  pull_request:
 
 env:
   CARGO_TERM_COLOR: always
@@ -9,9 +12,45 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        profile: [dev, release]
+
     steps:
     - uses: actions/checkout@v4
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --verbose --workspace --profile ${{ matrix.profile }}
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose --workspace --profile ${{ matrix.profile }}
+    - name: Upload build artifacts
+      if: ${{ matrix.profile == 'release' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-bins
+        path: |
+          target/release/archk-api-server
+          target/release/archk-api-docgen
+
+  docgen:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Retrieve build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-bins
+      - name: Generate documentation
+        run: |
+          chmod +x archk-api-docgen
+          ./archk-api-docgen --format json > docgen-v1.json
+          ./archk-api-docgen --format markdown > docgen-v1.md
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-docs
+          path: |
+            docgen-v1.*
+
