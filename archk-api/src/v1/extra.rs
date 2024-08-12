@@ -1,4 +1,8 @@
-use archk::v1::{api, auth::Token, user::UserID};
+use archk::v1::{
+    api,
+    auth::{Token, TokenTy},
+    user::UserID,
+};
 use axum::{
     async_trait,
     extract::FromRequestParts,
@@ -30,6 +34,10 @@ pub struct AuthenticatedUser<U: AuthenticatedUserParam = UserID> {
 #[async_trait]
 impl AuthenticatedUserParam for UserID {
     async fn verify(token: &Token, state: &AppState) -> Option<Self> {
+        if token.ty != TokenTy::Personal {
+            return None;
+        }
+
         let iat = token.iat as i64;
         let rnd = token.rnd as i64;
         let res = sqlx::query!(
@@ -37,23 +45,24 @@ impl AuthenticatedUserParam for UserID {
             iat,
             rnd
         )
-        .fetch_one(&state.db)
-        .await;
+        .fetch_optional(&state.db)
+        .await
+        .expect("database");
 
-        match res {
-            Ok(v) => {
-                Some(UserID::from(v.user_id).expect(
-                    "Invalid user id from database in AuthenticatedUser::from_request_parts",
-                ))
-            }
-            Err(_e) => None, // TODO: fetch_optional
-        }
+        res.map(|v| {
+            UserID::from(v.user_id)
+                .expect("Invalid user id from database in AuthenticatedUser::from_request_parts")
+        })
     }
 }
 
 #[async_trait]
 impl AuthenticatedUserParam for DbUser {
     async fn verify(token: &Token, state: &AppState) -> Option<Self> {
+        if token.ty != TokenTy::Personal {
+            return None;
+        }
+
         let iat = token.iat as i64;
         let rnd = token.rnd as i64;
 

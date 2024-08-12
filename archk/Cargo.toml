@@ -5,9 +5,10 @@ edition = "2021"
 publish = false
 
 [features]
-default = []
+default = ["ssh"]
 axum = ["dep:axum"]
-derive = ["dep:documentation-macro"]
+derive = []
+ssh = ["dep:russh-keys"]
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
@@ -20,8 +21,9 @@ regex = "1"
 uuid = { version = "1.10", features = ["v4", "fast-rng"] }
 
 axum = { version = "0.7", optional = true }
+russh-keys = { version = "0.44", optional = true }
 
-documentation-macro = { path = "../documentation-macro", optional = true }
+documentation-macro = { path = "../documentation-macro" }
 
 [dev-dependencies]
 serde_json = "1"

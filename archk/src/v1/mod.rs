@@ -1,5 +1,7 @@
 /// Authorization models
 pub mod auth;
+/// Service accounts models
+pub mod service;
 /// Space models
 pub mod space;
 /// User models
