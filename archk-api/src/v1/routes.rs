@@ -131,4 +131,22 @@ routes! {
     GET    "/space/:space_id/item/:item_id" => space::get_item_by_id,
     PATCH  "/space/:space_id/item/:item_id" => space::patch_item,
     DELETE "/space/:space_id/item/:item_id" => space::delete_item,
+
+    /// Get services bound to space. Supports pagging.
+    GET "/space/:space_id/services" => service::get_space_services
+        :   res(Vec<service::ServiceAccountResponse>),
+
+    /// Get admin services. If query param `?all=true` passed shows all services including from spaces.
+    /// Supports paging.
+    GET "/service" => service::get_services
+        :   res(Vec<service::ServiceAccountResponse>),
+    /// Creates new service.
+    PUT "/service" => service::create_service
+        // FIXME: real return type is `archk::v1::service::ServiceAccount`
+        // FIXME: uncomment body() when spaces will be documentated
+        :   //body(service::CreateServiceBody)
+            res(service::ServiceAccountResponse),
+    /// Delete service account
+    DELETE "/service/:service_account_id" => service::delete_service
+        :   res(u64),
 }

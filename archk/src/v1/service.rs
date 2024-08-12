@@ -27,6 +27,18 @@ impl_try_from_enum!(
     }
 );
 
+impl ServiceAccountTy {
+    /// Is space required to this type?
+    pub fn is_space_required(self) -> bool {
+        matches!(self, Self::SpaceEventWatcher | Self::SpaceActor)
+    }
+
+    /// Is can be created only by instance admins?
+    pub fn is_admin(self) -> bool {
+        matches!(self, Self::SSHAuthority)
+    }
+}
+
 /// Represents service account
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
 pub struct ServiceAccount {
