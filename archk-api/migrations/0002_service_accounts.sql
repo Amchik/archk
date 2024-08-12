@@ -1,6 +1,6 @@
 CREATE TABLE users_ssh_keys (
     id TEXT NOT NULL PRIMARY KEY,
-    pubkey_ty TEXT NOT NULL,
+    pubkey_ty INTEGER NOT NULL,
     pubkey_val TEXT NOT NULL,
     pubkey_fingerprint TEXT NOT NULL,
     owner_id TEXT NOT NULL,
