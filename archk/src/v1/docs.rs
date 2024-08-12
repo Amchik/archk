@@ -149,12 +149,18 @@ pub trait Documentation {
 /// assert_eq!(<MyType as Documentation>::DOCUMENTATION_OBJECT.name, "MyType");
 /// ```
 macro_rules! impl_documentation {
-    ($($v:ident)*) => {
-        $(
-            impl crate::v1::docs::Documentation for $v {
-                const DOCUMENTATION_OBJECT: crate::v1::docs::DocumentationObject = crate::v1::docs::DocumentationObject::new(stringify!($v), "", &[]);
-            }
-    )   *
+    ($ty:ident as $orig:ident) => {
+        impl crate::v1::docs::Documentation for $ty {
+            const DOCUMENTATION_OBJECT: crate::v1::docs::DocumentationObject = crate::v1::docs::DocumentationObject::new(stringify!($orig), "", &[]);
+        }
+    };
+
+    ($v:ident) => {
+        impl_documentation!($v as $v);
+    };
+
+    ($($v:ident)+) => {
+        $( impl_documentation!($v); )*
     };
 }
 pub(crate) use impl_documentation;

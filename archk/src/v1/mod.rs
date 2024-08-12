@@ -19,6 +19,7 @@ pub mod errors {
     /// Invalid enum variant passed.
     ///
     /// Example: attempt to call [`TryFrom::try_from`] on value that not described in enum.
+    #[derive(Debug)]
     pub struct NoEnumVariantError(pub(crate) ());
 
     impl std::fmt::Display for NoEnumVariantError {
@@ -31,6 +32,7 @@ pub mod errors {
     ///
     /// Example: attempt to call [`TryFrom::try_from`] on string that not CUID string.
     /// Used in CUID objects like [`super::user::UserID`].
+    #[derive(Debug)]
     pub struct StringIsNotCUID(pub(crate) ());
 
     impl std::fmt::Display for StringIsNotCUID {

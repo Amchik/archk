@@ -2,7 +2,11 @@ use archk::{
     v1::{
         api::{self, Response},
         auth::{Token, TokenTy},
-        user::{is_valid_username, User, UserID},
+        user::{
+            is_valid_username,
+            ssh::{UserSSHKey, UserSSHKeyID},
+            User, UserID,
+        },
     },
     Documentation,
 };
@@ -61,6 +65,17 @@ pub struct Paging {
 pub struct PromoteUserBody {
     /// Level to promote
     pub level: i64,
+}
+
+#[derive(Deserialize, Documentation)]
+pub struct UploadSSHKeyBody {
+    /// Public key string. Should starts with `ssh-rsa` or `ssh-ed25519`
+    pub pubkey: String,
+}
+
+#[derive(Deserialize)]
+pub struct SSHKeyPath {
+    pub key_id: String,
 }
 
 #[derive(Serialize, Documentation)]
@@ -589,4 +604,96 @@ pub async fn get_user_spaces(
             })
             .collect(),
     )
+}
+
+pub async fn get_ssh_keys(
+    AuthenticatedUser { user, .. }: AuthenticatedUser,
+    State(AppState { db, .. }): State<AppState>,
+) -> Response<Vec<UserSSHKey>> {
+    let user = &user as &str;
+    let res = sqlx::query!(
+        "SELECT 
+            id, pubkey_ty, pubkey_val, pubkey_fingerprint
+        FROM users_ssh_keys
+        WHERE owner_id = ?",
+        user
+    )
+    .fetch_all(&db)
+    .await
+    .expect("database")
+    .into_iter()
+    .map(|v| UserSSHKey {
+        id: UserSSHKeyID::from(v.id).expect("invalid cuid id in database"),
+        pubkey_ty: v
+            .pubkey_ty
+            .try_into()
+            .expect("invalid pubkey_ty in database"),
+        pubkey_val: v.pubkey_val,
+        pubkey_fingerprint: v.pubkey_fingerprint,
+    });
+
+    Response::Success(res.collect())
+}
+
+pub async fn upload_ssh_key(
+    AuthenticatedUser { user, .. }: AuthenticatedUser,
+    State(AppState { db, .. }): State<AppState>,
+    Json(UploadSSHKeyBody { pubkey }): Json<UploadSSHKeyBody>,
+) -> Response<UserSSHKey> {
+    let pubkey = match UserSSHKey::from_pubkey(&pubkey) {
+        Ok(v) => v,
+        Err(_) => {
+            return Response::Failture(
+                api::Error::MalformedData.detail("invalid public key".into()),
+            )
+        }
+    };
+
+    let pubkey_id: &str = &pubkey.id;
+    let pubkey_ty: i64 = pubkey.pubkey_ty.into();
+    let user_id: &str = &user;
+
+    let res = sqlx::query!(
+        "INSERT INTO
+        users_ssh_keys(id, pubkey_ty, pubkey_val, pubkey_fingerprint, owner_id)
+        VALUES (?, ?, ?, ?, ?)",
+        pubkey_id,
+        pubkey_ty,
+        pubkey.pubkey_val,
+        pubkey.pubkey_fingerprint,
+        user_id
+    )
+    .execute(&db)
+    .await;
+
+    match res {
+        Ok(_) => Response::Success(pubkey),
+        Err(e) if e.as_database_error().map(|v| v.is_unique_violation()) == Some(true) => {
+            Response::Failture(api::Error::Conflict.detail("key already exists".into()))
+        }
+        Err(e) => panic!("database error: {e}"),
+    }
+}
+
+pub async fn delete_ssh_key(
+    Path(SSHKeyPath { key_id }): Path<SSHKeyPath>,
+    AuthenticatedUser { user, .. }: AuthenticatedUser,
+    State(AppState { db, .. }): State<AppState>,
+) -> Response<u64> {
+    let user: &str = &user;
+    let res = sqlx::query!(
+        "DELETE FROM users_ssh_keys WHERE id = ? AND owner_id = ?",
+        key_id,
+        user
+    )
+    .execute(&db)
+    .await
+    .expect("database")
+    .rows_affected();
+
+    if res == 0 {
+        Response::Failture(api::Error::ObjectNotFound.into())
+    } else {
+        Response::Success(res)
+    }
 }

@@ -86,9 +86,11 @@ pub fn is_valid_username(v: &str) -> bool {
 
 #[cfg(feature = "ssh")]
 pub mod ssh {
+    use documentation_macro::Documentation;
     use serde::{Deserialize, Serialize};
 
     use crate::v1::{
+        docs::impl_documentation,
         errors::NoEnumVariantError,
         macros::{impl_cuid, impl_try_from_enum},
     };
@@ -98,6 +100,7 @@ pub mod ssh {
     #[repr(transparent)]
     pub struct UserSSHKeyID(String);
     impl_cuid!(UserSSHKeyID);
+    impl_documentation!(UserSSHKeyID);
 
     impl_try_from_enum!(
         /// Supported ssh key types.
@@ -148,8 +151,11 @@ pub mod ssh {
         }
     }
 
+    // On serialization SSHKeyTy is actually string
+    impl_documentation!(SSHKeyTy as String);
+
     /// User ssh key.
-    #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
+    #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Documentation)]
     pub struct UserSSHKey {
         /// Key ID
         pub id: UserSSHKeyID,

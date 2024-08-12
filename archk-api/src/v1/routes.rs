@@ -98,6 +98,17 @@ routes! {
     POST  "/user/invites/wave" => user::invite_wave
         :   res(u64),
 
+    /// Get own SSH keys
+    GET "/user/ssh-keys" => user::get_ssh_keys
+        :   res(Vec<archk::v1::user::ssh::UserSSHKey>),
+    /// Upload SSH key
+    PUT "/user/ssh-keys" => user::upload_ssh_key
+        :   body(user::UploadSSHKeyBody)
+            res(archk::v1::user::ssh::UserSSHKey),
+    /// Delete ssh key by their CUID
+    DELETE "/user/ssh-keys/:key_id" => user::delete_ssh_key
+        :   res(u64),
+
     /// Create space
     PUT   "/space" => space::create_space,
 
