@@ -149,4 +149,14 @@ routes! {
     /// Delete service account
     DELETE "/service/:service_account_id" => service::delete_service
         :   res(u64),
+
+    /// Get tokens count for service
+    GET "/service/:service_account_id/tokens" => service::get_tokens
+        :   res(i32),
+    /// Issue new service token
+    PUT "/service/:service_account_id/tokens" => service::put_token
+        :   res(service::ServiceTokenResponse),
+    /// Revoke all tokens
+    DELETE "/service/:service_account_id/tokens" => service::revoke_all_tokens
+        :   res(u64),
 }
