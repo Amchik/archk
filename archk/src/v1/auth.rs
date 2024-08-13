@@ -63,6 +63,7 @@ impl TokenTy {
     pub fn from_prefix(prefix: &str) -> Option<Self> {
         match prefix {
             "acp" => Some(Self::Personal),
+            "acs" => Some(Self::Service),
             _ => None,
         }
     }

@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use crate::app::AppState;
 
 use super::{
-    extra::{AuthenticatedUser, DbUser},
+    extra::{AuthenticatedUser, DbService, DbUser},
     space::SpacePath,
 };
 
@@ -423,4 +423,68 @@ pub async fn revoke_all_tokens(
     .expect("database");
 
     Response::Success(res.rows_affected())
+}
+
+pub mod ssh {
+    use archk::v1::user::ssh::SSHKeyTy;
+
+    use super::*;
+
+    #[derive(Deserialize, Documentation)]
+    pub struct FingerprintBody {
+        /// SSH key fingerprint in base64 without any prefixes (like `SHA256:`)
+        pub fingerprint: String,
+    }
+
+    #[derive(Serialize, Documentation)]
+    pub struct SSHKeyResponse {
+        /// Full public key string with key type
+        pub public_key: String,
+        /// ID of key owner (can be used as key comment)
+        pub user_id: String,
+    }
+
+    pub async fn fetch_ssh_keys_by_fingerprint(
+        AuthenticatedUser {
+            user: DbService { ty, .. },
+            ..
+        }: AuthenticatedUser<DbService>,
+        State(AppState { db, .. }): State<AppState>,
+        Json(FingerprintBody { fingerprint }): Json<FingerprintBody>,
+    ) -> Response<Vec<SSHKeyResponse>> {
+        if ty != ServiceAccountTy::SSHAuthority {
+            return Response::Failture(api::Error::Forbidden.into());
+        }
+
+        let res = sqlx::query!(
+            "SELECT pubkey_ty, pubkey_val, owner_id
+            FROM users_ssh_keys
+            WHERE pubkey_fingerprint = ?",
+            fingerprint
+        )
+        .fetch_all(&db)
+        .await
+        .expect("database");
+
+        if res.is_empty() {
+            Response::Failture(api::Error::ObjectNotFound.into())
+        } else {
+            Response::Success(
+                res.into_iter()
+                    .flat_map(|v| {
+                        Some(SSHKeyResponse {
+                            public_key: format!(
+                                "{} {}",
+                                SSHKeyTy::try_from(v.pubkey_ty)
+                                    .map(Into::<&'static str>::into)
+                                    .ok()?,
+                                v.pubkey_val
+                            ),
+                            user_id: v.owner_id,
+                        })
+                    })
+                    .collect(),
+            )
+        }
+    }
 }

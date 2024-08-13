@@ -159,4 +159,9 @@ routes! {
     /// Revoke all tokens
     DELETE "/service/:service_account_id/tokens" => service::revoke_all_tokens
         :   res(u64),
+
+    /// Get all ssh keys matching fingerprint. Returns error no one key matches.
+    POST "/service/_/ssh-keys" => service::ssh::fetch_ssh_keys_by_fingerprint
+        :   body(service::ssh::FingerprintBody)
+            res(Vec<service::ssh::SSHKeyResponse>),
 }
