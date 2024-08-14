@@ -19,6 +19,10 @@ server:
         spaces: true
         # Can manage spaces of others?
         spaces_manage: true
+        # Can create and manage space-related services?
+        services: true
+        # Can manage all services and create admin services?
+        services_manage: true
     - name: Moderator
       level: 90
       permissions:

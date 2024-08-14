@@ -19,6 +19,7 @@ use crate::app::AppState;
 mod auth;
 mod extra;
 pub mod routes;
+mod service;
 mod space;
 mod user;
 

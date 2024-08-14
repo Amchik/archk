@@ -36,7 +36,7 @@ pub struct UserRole {
     pub permissions: RolePermissions,
 }
 
-#[derive(Serialize, Deserialize, Default, Documentation)]
+#[derive(Serialize, Deserialize, Default, Clone, Documentation)]
 pub struct RolePermissions {
     /// Promote users to current role or demote if role less than current.
     #[serde(default)]
@@ -54,4 +54,11 @@ pub struct RolePermissions {
     /// Can manage spaces?
     #[serde(default)]
     pub spaces_manage: bool,
+
+    /// Can create and manage space-related services?
+    #[serde(default)]
+    pub services: bool,
+    /// Can manage all services and create admin services?
+    #[serde(default)]
+    pub services_manage: bool,
 }

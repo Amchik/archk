@@ -1,4 +1,10 @@
-use archk::v1::{api, auth::Token, user::UserID};
+use archk::v1::{
+    api,
+    auth::{Token, TokenTy},
+    service::{ServiceAccountID, ServiceAccountTy},
+    space::SpaceID,
+    user::UserID,
+};
 use axum::{
     async_trait,
     extract::FromRequestParts,
@@ -17,6 +23,14 @@ pub struct DbUser {
     pub password_hash: String,
 }
 
+#[derive(Debug)]
+#[allow(dead_code)] // ???
+pub struct DbService {
+    pub id: ServiceAccountID,
+    pub space_id: Option<SpaceID>,
+    pub ty: ServiceAccountTy,
+}
+
 #[async_trait]
 pub trait AuthenticatedUserParam: Sized {
     async fn verify(token: &Token, state: &AppState) -> Option<Self>;
@@ -30,6 +44,10 @@ pub struct AuthenticatedUser<U: AuthenticatedUserParam = UserID> {
 #[async_trait]
 impl AuthenticatedUserParam for UserID {
     async fn verify(token: &Token, state: &AppState) -> Option<Self> {
+        if token.ty != TokenTy::Personal {
+            return None;
+        }
+
         let iat = token.iat as i64;
         let rnd = token.rnd as i64;
         let res = sqlx::query!(
@@ -37,23 +55,24 @@ impl AuthenticatedUserParam for UserID {
             iat,
             rnd
         )
-        .fetch_one(&state.db)
-        .await;
+        .fetch_optional(&state.db)
+        .await
+        .expect("database");
 
-        match res {
-            Ok(v) => {
-                Some(UserID::from(v.user_id).expect(
-                    "Invalid user id from database in AuthenticatedUser::from_request_parts",
-                ))
-            }
-            Err(_e) => None, // TODO: fetch_optional
-        }
+        res.map(|v| {
+            UserID::from(v.user_id)
+                .expect("Invalid user id from database in AuthenticatedUser::from_request_parts")
+        })
     }
 }
 
 #[async_trait]
 impl AuthenticatedUserParam for DbUser {
     async fn verify(token: &Token, state: &AppState) -> Option<Self> {
+        if token.ty != TokenTy::Personal {
+            return None;
+        }
+
         let iat = token.iat as i64;
         let rnd = token.rnd as i64;
 
@@ -66,6 +85,41 @@ impl AuthenticatedUserParam for DbUser {
         .fetch_optional(&state.db)
         .await
         .expect("database")
+    }
+}
+
+#[async_trait]
+impl AuthenticatedUserParam for DbService {
+    async fn verify(token: &Token, state: &AppState) -> Option<Self> {
+        if token.ty != TokenTy::Service {
+            return None;
+        }
+
+        let iat = token.iat as i64;
+        let rnd = token.rnd as i64;
+
+        let res = sqlx::query!(
+            "
+                SELECT
+                    service_tokens.service_id as id,
+                    service_accounts.space_id,
+                    service_accounts.ty
+                FROM service_tokens
+                    INNER JOIN service_accounts
+                        ON service_tokens.service_id = service_accounts.id
+                WHERE service_tokens.iat = ? AND service_tokens.rnd = ?",
+            iat,
+            rnd
+        )
+        .fetch_optional(&state.db)
+        .await
+        .expect("database")?;
+
+        Some(Self {
+            id: ServiceAccountID::from(res.id)?,
+            space_id: res.space_id.map(SpaceID::from).flatten(),
+            ty: ServiceAccountTy::try_from(res.ty).ok()?,
+        })
     }
 }
 

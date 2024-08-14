@@ -29,6 +29,9 @@ use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 pub enum TokenTy {
     /// Personal tokens, issued for users
     Personal,
+
+    /// Tokens that belongs to service accounts.
+    Service,
 }
 
 impl TokenTy {
@@ -43,6 +46,7 @@ impl TokenTy {
     pub fn prefix(self) -> &'static str {
         match self {
             Self::Personal => "acp",
+            Self::Service => "acs",
         }
     }
     /// Convert prefix to [`TokenTy`].
@@ -59,6 +63,7 @@ impl TokenTy {
     pub fn from_prefix(prefix: &str) -> Option<Self> {
         match prefix {
             "acp" => Some(Self::Personal),
+            "acs" => Some(Self::Service),
             _ => None,
         }
     }

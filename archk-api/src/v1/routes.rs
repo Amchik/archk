@@ -98,6 +98,17 @@ routes! {
     POST  "/user/invites/wave" => user::invite_wave
         :   res(u64),
 
+    /// Get own SSH keys
+    GET "/user/ssh-keys" => user::get_ssh_keys
+        :   res(Vec<archk::v1::user::ssh::UserSSHKey>),
+    /// Upload SSH key
+    PUT "/user/ssh-keys" => user::upload_ssh_key
+        :   body(user::UploadSSHKeyBody)
+            res(archk::v1::user::ssh::UserSSHKey),
+    /// Delete ssh key by their CUID
+    DELETE "/user/ssh-keys/:key_id" => user::delete_ssh_key
+        :   res(u64),
+
     /// Create space
     PUT   "/space" => space::create_space,
 
@@ -120,4 +131,37 @@ routes! {
     GET    "/space/:space_id/item/:item_id" => space::get_item_by_id,
     PATCH  "/space/:space_id/item/:item_id" => space::patch_item,
     DELETE "/space/:space_id/item/:item_id" => space::delete_item,
+
+    /// Get services bound to space. Supports pagging.
+    GET "/space/:space_id/services" => service::get_space_services
+        :   res(Vec<service::ServiceAccountResponse>),
+
+    /// Get admin services. If query param `?all=true` passed shows all services including from spaces.
+    /// Supports paging.
+    GET "/service" => service::get_services
+        :   res(Vec<service::ServiceAccountResponse>),
+    /// Creates new service.
+    PUT "/service" => service::create_service
+        // FIXME: real return type is `archk::v1::service::ServiceAccount`
+        // FIXME: uncomment body() when spaces will be documentated
+        :   //body(service::CreateServiceBody)
+            res(service::ServiceAccountResponse),
+    /// Delete service account
+    DELETE "/service/:service_account_id" => service::delete_service
+        :   res(u64),
+
+    /// Get tokens count for service
+    GET "/service/:service_account_id/tokens" => service::get_tokens
+        :   res(i32),
+    /// Issue new service token
+    PUT "/service/:service_account_id/tokens" => service::put_token
+        :   res(service::ServiceTokenResponse),
+    /// Revoke all tokens
+    DELETE "/service/:service_account_id/tokens" => service::revoke_all_tokens
+        :   res(u64),
+
+    /// Get all ssh keys matching fingerprint. Returns error no one key matches.
+    POST "/service/_/ssh-keys" => service::ssh::fetch_ssh_keys_by_fingerprint
+        :   body(service::ssh::FingerprintBody)
+            res(Vec<service::ssh::SSHKeyResponse>),
 }
