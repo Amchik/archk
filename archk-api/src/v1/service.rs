@@ -36,6 +36,8 @@ pub struct CreateServiceBody {
     pub ty: ServiceAccountTy,
     /// Space ID. Set to `null` to create admin service.
     pub space_id: Option<SpaceID>,
+    /// Service name
+    pub name: String,
 }
 
 #[derive(Deserialize)]
@@ -47,6 +49,8 @@ pub struct ServiceAccountPath {
 pub struct ServiceAccountResponse {
     /// Service ID
     pub id: String,
+    /// Service name
+    pub name: String,
     /// Space ID service belongs to
     pub space_id: Option<String>,
     /// Service type
@@ -125,6 +129,7 @@ pub async fn get_space_services(
             "
             SELECT
                 service_accounts.id,
+                service_accounts.name,
                 service_accounts.ty,
                 service_accounts.space_id
             FROM service_accounts
@@ -142,6 +147,7 @@ pub async fn get_space_services(
             "
             SELECT
                 service_accounts.id,
+                service_accounts.name,
                 service_accounts.ty,
                 service_accounts.space_id
             FROM service_accounts
@@ -169,7 +175,7 @@ pub async fn create_service(
         ..
     }: AuthenticatedUser<DbUser>,
     State(AppState { db, roles, .. }): State<AppState>,
-    Json(CreateServiceBody { ty, space_id }): Json<CreateServiceBody>,
+    Json(CreateServiceBody { ty, space_id, name }): Json<CreateServiceBody>,
 ) -> Response<ServiceAccount> {
     let perms = roles
         .get_current(level)
@@ -209,8 +215,9 @@ pub async fn create_service(
     let ty_idx: i64 = ty.into();
 
     let res = sqlx::query!(
-        "INSERT INTO service_accounts(id, ty, space_id) VALUES (?, ?, ?)",
+        "INSERT INTO service_accounts(id, name, ty, space_id) VALUES (?, ?, ?, ?)",
         id_str,
+        name,
         ty_idx,
         space_id_ref
     )
