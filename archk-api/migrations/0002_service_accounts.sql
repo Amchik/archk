@@ -12,6 +12,7 @@ CREATE INDEX idx_users_ssh_keys_fingerprint ON users_ssh_keys(pubkey_fingerprint
 
 CREATE TABLE service_accounts (
     id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
     space_id TEXT DEFAULT NULL,
     ty INTEGER NOT NULL,
 
