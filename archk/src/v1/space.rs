@@ -115,6 +115,10 @@ impl_try_from_enum!(
         ItemTaken = 200,
         ItemReturned = 300,
         StoredItemReturned = 301,
+        /// Someone requested to register his item of type [`SpaceItemTy::Normal`]
+        RequestedItemNormalRegistration = 400,
+        /// Someone requested to register his keycard (item of type [`SpaceItemTy::Keycard`])
+        RequestedItemKeycardRegistration = 401,
     }
 );
 
