@@ -1,8 +1,13 @@
-use archk::v1::{
-    api::{self, Response},
-    models::MayIgnored,
-    space::{Space, SpaceAccount, SpaceID, SpaceItem, SpaceItemID, SpaceItemTy},
-    user::{User, UserID},
+use archk::{
+    v1::{
+        api::{self, Response},
+        models::MayIgnored,
+        space::{
+            Space, SpaceAccount, SpaceID, SpaceItem, SpaceItemID, SpaceItemTy, SpaceLogAction,
+        },
+        user::{User, UserID},
+    },
+    Documentation,
 };
 use axum::{
     extract::{Path, Query, State},
@@ -86,6 +91,21 @@ pub struct SpaceItemWithoutSpaceID {
 pub struct GetSpaceItemResponse {
     pub item: SpaceItemWithoutSpaceID,
     pub owner: Option<SpaceAccountWithoutSpaceID>,
+}
+
+#[derive(Serialize, Documentation)]
+pub struct SpaceItemLogEntry {
+    /// Global space log ID
+    pub id: String,
+    /// Creation timestamp
+    pub created_at: i64,
+
+    /// Action
+    pub act: i64,
+    /// Account platform ID if any
+    pub sp_acc_id: Option<String>,
+    /// Item ID if any
+    pub sp_item_id: Option<String>,
 }
 
 pub async fn create_space(
@@ -887,4 +907,102 @@ pub async fn delete_item(
     } else {
         Response::Success(res)
     }
+}
+
+pub async fn get_logs_by_account(
+    Path(SpaceAccountPath { space_id, acc_id }): Path<SpaceAccountPath>,
+    Query(Paging { page }): Query<Paging>,
+    AuthenticatedUser {
+        user: DbUser {
+            id: user_id, level, ..
+        },
+        ..
+    }: AuthenticatedUser<DbUser>,
+    State(AppState { db, roles, .. }): State<AppState>,
+) -> Response<Vec<SpaceItemLogEntry>> {
+    let can_manage_spaces = roles
+        .get_current(level)
+        .map(|v| v.permissions.spaces_manage)
+        .unwrap_or(false);
+
+    let space_id: &str = &space_id;
+    if !can_manage_spaces {
+        let res = sqlx::query!("SELECT owner_id FROM spaces WHERE id = ?", space_id)
+            .fetch_optional(&db)
+            .await
+            .expect("database")
+            .map(|v| v.owner_id);
+
+        match res {
+            Some(owner_id) if owner_id == user_id => (),
+            _ => return Response::Failture(api::Error::Forbidden.into()),
+        }
+    }
+
+    let (limit, offset) = (50, 50 * page as i64);
+    let res = sqlx::query_as!(
+        SpaceItemLogEntry,
+        "SELECT id, created_at, act, sp_acc_id, sp_item_id
+        FROM spaces_logs
+        WHERE sp_acc_id = ? AND space_id = ?
+        LIMIT ? OFFSET ?",
+        acc_id,
+        space_id,
+        limit,
+        offset
+    )
+    .fetch_all(&db)
+    .await
+    .expect("database");
+
+    Response::Success(res)
+}
+
+pub async fn get_logs_by_item(
+    Path(SpaceItemPath { space_id, item_id }): Path<SpaceItemPath>,
+    Query(Paging { page }): Query<Paging>,
+    AuthenticatedUser {
+        user: DbUser {
+            id: user_id, level, ..
+        },
+        ..
+    }: AuthenticatedUser<DbUser>,
+    State(AppState { db, roles, .. }): State<AppState>,
+) -> Response<Vec<SpaceItemLogEntry>> {
+    let can_manage_spaces = roles
+        .get_current(level)
+        .map(|v| v.permissions.spaces_manage)
+        .unwrap_or(false);
+
+    let space_id: &str = &space_id;
+    if !can_manage_spaces {
+        let res = sqlx::query!("SELECT owner_id FROM spaces WHERE id = ?", space_id)
+            .fetch_optional(&db)
+            .await
+            .expect("database")
+            .map(|v| v.owner_id);
+
+        match res {
+            Some(owner_id) if owner_id == user_id => (),
+            _ => return Response::Failture(api::Error::Forbidden.into()),
+        }
+    }
+
+    let (limit, offset) = (50, 50 * page as i64);
+    let res = sqlx::query_as!(
+        SpaceItemLogEntry,
+        "SELECT id, created_at, act, sp_acc_id, sp_item_id
+        FROM spaces_logs
+        WHERE sp_item_id = ? AND space_id = ?
+        LIMIT ? OFFSET ?",
+        item_id,
+        space_id,
+        limit,
+        offset
+    )
+    .fetch_all(&db)
+    .await
+    .expect("database");
+
+    Response::Success(res)
 }
