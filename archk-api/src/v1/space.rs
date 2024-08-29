@@ -2,9 +2,7 @@ use archk::{
     v1::{
         api::{self, Response},
         models::MayIgnored,
-        space::{
-            Space, SpaceAccount, SpaceID, SpaceItem, SpaceItemID, SpaceItemTy, SpaceLogAction,
-        },
+        space::{Space, SpaceAccount, SpaceID, SpaceItem, SpaceItemID, SpaceItemTy},
         user::{User, UserID},
     },
     Documentation,
