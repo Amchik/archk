@@ -20,17 +20,22 @@ impl_try_from_enum!(
         /// Service that can get users by their ssh keys.
         SSHAuthority = 1,
 
-        /// Can watch any event of space
+        /// Can watch for lock status
         SpaceEventWatcher = 1000,
-        /// Can report any supported type of action
+        /// Can report new serial, confirmation and report requests
         SpaceActor = 1001,
+        /// Can ask for registration, request unlocks and read reports
+        SpaceManager = 1002,
     }
 );
 
 impl ServiceAccountTy {
     /// Is space required to this type?
     pub fn is_space_required(self) -> bool {
-        matches!(self, Self::SpaceEventWatcher | Self::SpaceActor)
+        matches!(
+            self,
+            Self::SpaceEventWatcher | Self::SpaceActor | Self::SpaceManager
+        )
     }
 
     /// Is can be created only by instance admins?
