@@ -125,12 +125,20 @@ routes! {
 
     GET "/space/:space_id/account/:acc_id/items" => space::get_items_of_account,
 
+    // Get logs for specific account. Supports paging.
+    GET "/space/:space_id/account/:acc_id/logs" => space::get_logs_by_account
+        :   res(Vec<space::SpaceItemLogEntry>),
+
     GET "/space/:space_id/item" => space::get_items,
     PUT "/space/:space_id/item" => space::create_item,
 
     GET    "/space/:space_id/item/:item_id" => space::get_item_by_id,
     PATCH  "/space/:space_id/item/:item_id" => space::patch_item,
     DELETE "/space/:space_id/item/:item_id" => space::delete_item,
+
+    // Get logs for specific item. Supports paging.
+    GET "/space/:space_id/item/:item_id/logs" => space::get_logs_by_item
+        :   res(Vec<space::SpaceItemLogEntry>),
 
     /// Get services bound to space. Supports pagging.
     GET "/space/:space_id/services" => service::get_space_services

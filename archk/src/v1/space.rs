@@ -111,8 +111,14 @@ impl_try_from_enum!(
     #[serde(into = "i64", try_from = "i64")]
     pub enum SpaceLogAction : repr(i64) {
         KeycardScanned = 100,
+        OpenRequested = 101,
         ItemTaken = 200,
         ItemReturned = 300,
+        StoredItemReturned = 301,
+        /// Someone requested to register his item of type [`SpaceItemTy::Normal`]
+        RequestedItemNormalRegistration = 400,
+        /// Someone requested to register his keycard (item of type [`SpaceItemTy::Keycard`])
+        RequestedItemKeycardRegistration = 401,
     }
 );
 
